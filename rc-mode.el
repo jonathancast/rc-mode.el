@@ -29,6 +29,10 @@
 ;; ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;; DEALINGS IN THE SOFTWARE.
 
+(defgroup rc nil "Plan 9 rc shell script mode" :group 'languages)
+
+(defcustom rc-indent-level 2 "Default indentation level for rc scripts")
+
 (defun rc-intersperse (items sep)
   (if (null (cdr items))
       items
@@ -96,13 +100,15 @@
      (beginning-of-line)
      (cond
       ((bobp) 0)
+      ((rc-looking-at-case)
+       (+ (rc-previous-block-indentation) rc-indent-level))
       ((or (rc-looking-at-continuation)
            (rc-under-case-clause)
            (rc-under-block-header))
        (+ (rc-previous-line-indentation)
           (if (rc-looking-at-block-end)
               0
-            2)))
+           rc-indent-level)))
       ((rc-looking-at-block-end)
        (rc-previous-block-indentation))
       ((rc-inside-list-continuation)
@@ -150,6 +156,16 @@
   (save-excursion
     (beginning-of-line)
     (looking-at "^[ \t]*}")))
+
+(defun rc-looking-at-case ()
+  (save-excursion
+    (beginning-of-line)
+    (looking-at "^[ \t]*case[ \t]")))
+
+(defun rc-looking-at-switch ()
+  (save-excursion
+    (beginning-of-line)
+    (looking-at "^[ \t]*switch[ \t]")))
 
 (defun rc-looking-at-continuation ()
   (save-excursion
